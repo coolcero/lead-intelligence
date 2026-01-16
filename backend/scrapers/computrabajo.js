@@ -17,11 +17,14 @@ export async function scrapeComputrabajo(companyName) {
 
         browser = await puppeteer.launch({
             headless: 'new',
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
-                '--disable-gpu'
+                '--disable-gpu',
+                '--single-process', // Ahorra memoria en entornos limitados
+                '--no-zygote'
             ]
         });
 

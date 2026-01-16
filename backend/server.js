@@ -216,7 +216,7 @@ async function runScan(companies, portals, groqApiKey, findContacts = true, rapi
 
     // CONFIGURACIÓN (Optimizada para Scrapers + Sales Nav)
     // RapidAPI descartada por inestabilidad. Usamos scrapers y Sales Nav.
-    const CONCURRENT_COMPANIES = 7; // Límite seguro para no tumbar browsers
+    const CONCURRENT_COMPANIES = 1; // Límite seguro para Free Tier (Evita OOM)
     const GENERATE_EXCEL_EVERY = 50; // Menos escritura en disco frecuente
 
     addLog('='.repeat(50), 'info');
