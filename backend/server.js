@@ -269,8 +269,8 @@ async function runScan(companies, portals, groqApiKey, findContacts = true, rapi
                 scanStatus.currentPortal = portalId;
 
                 try {
-                    // Log de depuración
-                    // addLog(`   🔎 Buscando en ${portalId}...`, 'text-muted');
+                    // Log de depuración: Mostrar TODO incluyendo inicio y vacíos
+                    addLog(`   🔎 Buscando en ${portalId}...`, 'text-muted');
 
                     const vacancies = await scraper(companyName);
 
@@ -280,7 +280,7 @@ async function runScan(companies, portals, groqApiKey, findContacts = true, rapi
                         await processVacancies(vacancies, portalId, company, companyName, companyVacancies, groqApiKey);
                     } else {
                         // Log explícito de 0 encontrados para dar certeza al usuario
-                        // addLog(`   ⚪ Sin resultados en ${portalId}`, 'text-muted');
+                        addLog(`   ⚪ Sin resultados en ${portalId}`, 'text-muted');
                     }
                 } catch (error) {
                     addLog(`   ⚠️ Error en ${portalId}: ${error.message}`, 'warning');
