@@ -272,7 +272,8 @@ async function runScan(companies, portals, groqApiKey, findContacts = true, rapi
                     // Log de depuración: Mostrar TODO incluyendo inicio y vacíos
                     addLog(`   🔎 Buscando en ${portalId}...`, 'text-muted');
 
-                    const vacancies = await scraper(companyName);
+                    // Pass logger to scraper for deep debugging
+                    const vacancies = await scraper(companyName, (msg) => addLog(`      🐛 ${portalId}: ${msg}`, 'text-muted'));
 
                     if (vacancies && vacancies.length > 0) {
                         addLog(`   ✅ ${vacancies.length} vacantes en ${portalId}`, 'success');
