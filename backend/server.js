@@ -245,10 +245,14 @@ async function runScan(companies, portals, groqApiKey, findContacts = true, rapi
     async function processCompanyFast(company, index) {
         if (!scanStatus.isScanning) return [];
 
+        // 🛑 FRENO DE MANO: Esperar 3 segundos entre empresas para evitar "Machine Gun Effect"
+        // Esto permite que el servidor respire y que el usuario pueda detener el proceso si va mal.
+        await new Promise(r => setTimeout(r, 3000));
+
         // Protection against crashes: Wrap everything
         try {
             const companyName = typeof company === 'string' ? company : (company.razonSocial || company.name);
-            addLog(`[${index + 1}/${companies.length}] 🏢 ${companyName}`, 'info');
+            addLog(`[${index + 1}/${companies.length}] 🏢 ${companyName} (Escaneando...)`, 'info');
 
             const companyVacancies = [];
 

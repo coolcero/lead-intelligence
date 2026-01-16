@@ -209,10 +209,30 @@ function ScanPage() {
         }, ...prev].slice(0, 100))
     }, [])
 
+    const [pendingCount, setPendingCount] = useState(50) // Cantidad de pendientes a seleccionar
+
+    // Seleccionar lote de pendientes
+    const selectPendingCompanies = () => {
+        const pending = companies.filter(c => !c.lastScanned).slice(0, pendingCount)
+        if (pending.length === 0) {
+            addLog('No hay empresas pendientes por escanear.', 'warning')
+            return
+        }
+
+        // Guardar temporalmente las seleccionadas para este escaneo
+        setPendingSelection(pending)
+        addLog(`✅ Seleccionadas ${pending.length} empresas que nunca han sido escaneadas.`, 'success')
+    }
+
+    const [pendingSelection, setPendingSelection] = useState([]) // Estado para guardar la selección
+
     // Iniciar escaneo con backend real
-    const startScan = async () => {
-        if (companies.length === 0) {
-            addLog('No hay empresas para escanear. Importa empresas primero.', 'error')
+    const startScan = async (companiesOverride = null) => {
+        // Usar el override si existe, de lo contrario usar todas
+        const companiesToScan = companiesOverride || companies
+
+        if (!companiesToScan || companiesToScan.length === 0) {
+            addLog('No hay empresas seleccionadas para escanear.', 'error')
             return
         }
 
@@ -230,14 +250,14 @@ function ScanPage() {
         setScanResults({ found: 0, scanned: 0, errors: 0 })
         setScanLog([])
 
-        addLog(`Iniciando escaneo de ${companies.length} empresas en ${selectedPortals.length} portales...`, 'info')
+        addLog(`🚀 Iniciando escaneo de ${companiesToScan.length} empresas en ${selectedPortals.length} portales...`, 'info')
 
         try {
             const response = await fetch(`${settings.backendUrl}/api/scan`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    companies: companies, // TODAS las empresas
+                    companies: companiesToScan, // Enviar LISTA EXPLÍCITA
                     portals: selectedPortals,
                     groqApiKey: settings.groqApiKey,
                     findContacts: findContacts,
@@ -250,7 +270,9 @@ function ScanPage() {
                 throw new Error(error.error || 'Error iniciando escaneo')
             }
 
-            addLog('Escaneo iniciado en el backend...', 'success')
+            addLog('✅ Comando enviado al servidor.', 'success')
+            // Limpiar selección después de iniciar
+            setPendingSelection([])
 
         } catch (error) {
             addLog(`Error: ${error.message}`, 'error')
@@ -460,14 +482,38 @@ function ScanPage() {
 
                     <div style={{ display: 'flex', gap: '12px' }}>
                         {!scanning ? (
-                            <button
-                                className="btn btn-primary"
-                                onClick={startScan}
-                                disabled={companies.length === 0 || selectedPortals.length === 0 || !backendOnline}
-                            >
-                                <Play size={18} />
-                                Iniciar Escaneo Real
-                            </button>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                {/* Selector de Pendientes */}
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <input
+                                        type="number"
+                                        value={pendingCount}
+                                        onChange={(e) => setPendingCount(parseInt(e.target.value) || 50)}
+                                        style={{ width: '80px', padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}
+                                    />
+                                    <button
+                                        className="btn btn-secondary"
+                                        onClick={selectPendingCompanies}
+                                        style={{ fontSize: '0.8rem' }}
+                                    >
+                                        Seleccionar Pendientes
+                                    </button>
+                                    {pendingSelection.length > 0 && (
+                                        <span style={{ color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                                            {pendingSelection.length} seleccionadas
+                                        </span>
+                                    )}
+                                </div>
+
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={startScan}
+                                    disabled={companies.length === 0 || selectedPortals.length === 0 || !backendOnline}
+                                >
+                                    <Play size={18} />
+                                    {pendingSelection.length > 0 ? `Escanear ${pendingSelection.length} Seleccionadas` : 'Iniciar Escaneo Completo'}
+                                </button>
+                            </div>
                         ) : (
                             <button className="btn btn-danger" onClick={stopScan}>
                                 <Pause size={18} />
@@ -500,7 +546,12 @@ function ScanPage() {
                     borderRadius: 'var(--radius-sm)',
                     fontSize: '0.8rem'
                 }}>
-                    🚀 Escaneo COMPLETO: Se buscarán TODAS las {companies.length.toLocaleString()} empresas en los 7 portales. El reporte Excel se genera automáticamente.
+                    {scanning
+                        ? `🚀 Escaneando ${scanProgress.total} empresas...`
+                        : pendingSelection.length > 0
+                            ? `🚀 Listo para escanear ${pendingSelection.length} empresas seleccionadas (Lote Pendiente).`
+                            : `🚀 Modo Completo: Se buscarán TODAS las ${companies.length.toLocaleString()} empresas.`
+                    }
                 </div>
 
                 {/* Progress Bar */}
