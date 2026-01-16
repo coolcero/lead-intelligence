@@ -269,15 +269,21 @@ async function runScan(companies, portals, groqApiKey, findContacts = true, rapi
                 scanStatus.currentPortal = portalId;
 
                 try {
+                    // Log de depuración
+                    // addLog(`   🔎 Buscando en ${portalId}...`, 'text-muted');
+
                     const vacancies = await scraper(companyName);
 
                     if (vacancies && vacancies.length > 0) {
-                        addLog(`   📋 ${vacancies.length} vacantes encontradas en ${portalId}`, 'info');
+                        addLog(`   ✅ ${vacancies.length} vacantes en ${portalId}`, 'success');
                         // Usar helper unificado para procesar vacantes (incluye actualización en tiempo real)
                         await processVacancies(vacancies, portalId, company, companyName, companyVacancies, groqApiKey);
+                    } else {
+                        // Log explícito de 0 encontrados para dar certeza al usuario
+                        // addLog(`   ⚪ Sin resultados en ${portalId}`, 'text-muted');
                     }
                 } catch (error) {
-                    // No incrementar error global para no alarmar, solo log interno
+                    addLog(`   ⚠️ Error en ${portalId}: ${error.message}`, 'warning');
                 }
             }
 

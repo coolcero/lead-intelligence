@@ -484,35 +484,50 @@ function ScanPage() {
                         {!scanning ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                 {/* Selector de Pendientes */}
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', background: 'var(--bg-card)', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>Modo Lote:</span>
                                     <input
                                         type="number"
                                         value={pendingCount}
                                         onChange={(e) => setPendingCount(parseInt(e.target.value) || 50)}
-                                        style={{ width: '80px', padding: '8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}
+                                        style={{ width: '70px', padding: '6px', borderRadius: '4px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)' }}
                                     />
                                     <button
                                         className="btn btn-secondary"
                                         onClick={selectPendingCompanies}
-                                        style={{ fontSize: '0.8rem' }}
+                                        style={{ fontSize: '0.8rem', padding: '6px 12px' }}
                                     >
-                                        Seleccionar Pendientes
+                                        Pre-seleccionar
                                     </button>
-                                    {pendingSelection.length > 0 && (
-                                        <span style={{ color: 'var(--accent)', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                            {pendingSelection.length} seleccionadas
-                                        </span>
-                                    )}
                                 </div>
 
-                                <button
-                                    className="btn btn-primary"
-                                    onClick={startScan}
-                                    disabled={companies.length === 0 || selectedPortals.length === 0 || !backendOnline}
-                                >
-                                    <Play size={18} />
-                                    {pendingSelection.length > 0 ? `Escanear ${pendingSelection.length} Seleccionadas` : 'Iniciar Escaneo Completo'}
-                                </button>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    {/* Botón Prioritario: Escanear Lote */}
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={() => startScan(pendingSelection.length > 0 ? pendingSelection : null)}
+                                        disabled={pendingSelection.length === 0 || !backendOnline}
+                                        style={{ flex: 1, background: pendingSelection.length > 0 ? 'var(--primary)' : 'var(--border)', cursor: pendingSelection.length > 0 ? 'pointer' : 'not-allowed' }}
+                                    >
+                                        <Play size={18} />
+                                        {pendingSelection.length > 0 ? `Escanear Lote (${pendingSelection.length})` : 'Selecciona un lote arriba'}
+                                    </button>
+
+                                    {/* Botón Peligroso: Escanear Todo */}
+                                    <button
+                                        className="btn btn-danger"
+                                        onClick={() => {
+                                            if (window.confirm(`⚠️ ¿Estás seguro de que quieres escanear TODAS las ${companies.length} empresas? Esto tomará horas.`)) {
+                                                startScan(companies);
+                                            }
+                                        }}
+                                        disabled={companies.length === 0 || !backendOnline}
+                                        style={{ opacity: 0.8 }}
+                                    >
+                                        <Play size={18} />
+                                        Escanear TODO
+                                    </button>
+                                </div>
                             </div>
                         ) : (
                             <button className="btn btn-danger" onClick={stopScan}>
